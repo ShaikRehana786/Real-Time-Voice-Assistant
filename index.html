@@ -2,110 +2,385 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Real-Time Voice Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hazir • Real-Time AI Voice Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: #1e293b; padding: 25px; border-radius: 12px; width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        button { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin: 8px 0; }
-        button.stop { background: #ef4444; }
-        button.barge { background: #f59e0b; }
-        .log-box { background: #020617; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; font-family: monospace; font-size: 13px; margin-top: 15px; }
-        .stat-badge { display: inline-block; padding: 4px 8px; background: #334155; border-radius: 4px; font-size: 12px; margin-right: 6px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background: #060913;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .card {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.1);
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand h1 {
+            font-size: 19px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .urdu {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 4px 10px;
+            border-radius: 99px;
+        }
+        .mic-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px 0;
+        }
+        .mic-btn {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #0284c7, #0369a1);
+            border: 2px solid #38bdf8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+        }
+        .mic-btn.listening {
+            background: radial-gradient(circle, #f43f5e, #be123c);
+            border-color: #fda4af;
+            box-shadow: 0 0 30px rgba(244, 63, 94, 0.8);
+            transform: scale(1.05);
+        }
+        .status-text {
+            font-size: 13px;
+            color: #94a3b8;
+            min-height: 18px;
+        }
+        .quick-chips {
+            width: 100%;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .chip {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 11px;
+            color: #cbd5e1;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .chip:hover {
+            border-color: #38bdf8;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+        }
+        .chat-box {
+            width: 100%;
+            height: 210px;
+            background: rgba(3, 7, 18, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .msg {
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            line-height: 1.45;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .msg.user {
+            background: #1e293b;
+            color: #f8fafc;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .msg.hazir {
+            background: rgba(14, 165, 233, 0.15);
+            color: #e0f2fe;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .msg.tool-badge {
+            align-self: center;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .input-row {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+        }
+        .input-row input {
+            flex: 1;
+            background: rgba(3, 7, 18, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 11px 14px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+        .input-row input:focus {
+            border-color: #38bdf8;
+        }
+        .btn {
+            background: #0284c7;
+            border: none;
+            border-radius: 12px;
+            padding: 0 16px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-stop {
+            background: rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(244, 63, 94, 0.5);
+            color: #fda4af;
+            border-radius: 12px;
+            padding: 0 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Real-Time Voice Assistant</h2>
-        <p style="color: #94a3b8; font-size: 14px;">Full-duplex WebSocket pipeline with SQLite tool-calling & barge-in interruption.</p>
-        
-        <button id="recordBtn" onclick="toggleRecording()">Click to Talk</button>
-        <button class="barge" onclick="interruptAudio()">Interrupt Assistant (Barge-In)</button>
 
-        <div id="stats" style="margin-top: 15px;">
-            <span class="stat-badge" id="stt-stat">STT: - ms</span>
-            <span class="stat-badge" id="llm-stat">LLM: - ms</span>
-            <span class="stat-badge" id="tts-stat">TTS: - ms</span>
-            <span class="stat-badge" id="total-stat">Round-Trip: - ms</span>
+<div class="card">
+    <div class="header">
+        <div class="brand">
+            <h1>Hazir</h1>
+            <span class="urdu">حاضر</span>
         </div>
-
-        <div class="log-box" id="logs"></div>
+        <span class="badge" id="latencyBadge">RTT: 0ms</span>
     </div>
 
-    <script>
-        const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
-        let currentAudio = null;
+    <div class="quick-chips">
+        <div class="chip" onclick="quickSend('What can you do?')">⚡ Capabilities</div>
+        <div class="chip" onclick="quickSend('What is the weather?')">🌤️ Weather</div>
+        <div class="chip" onclick="quickSend('Tell me about generative AI')">🤖 Gen AI</div>
+        <div class="chip" onclick="quickSend('Show my reminders')">📋 Reminders</div>
+        <div class="chip" onclick="quickSend('Telugu lo matladu')">🗣️ Telugu</div>
+    </div>
 
-        function log(msg) {
-            const el = document.getElementById("logs");
-            el.innerHTML += `<div>> ${msg}</div>`;
-            el.scrollTop = el.scrollHeight;
+    <div class="mic-container">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Tap to speak">
+            <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="status-text" id="statusText">Tap microphone or type below</div>
+
+    <div class="chat-box" id="chatBox">
+        <div class="msg hazir">Main Hazir Hoon! I am your real-time assistant. Ask me for live weather, reminders, notes, or explanations.</div>
+    </div>
+
+    <div class="input-row">
+        <input type="text" id="textInput" placeholder="Speak or type a command..." onkeydown="if(event.key==='Enter') sendManual()">
+        <button class="btn" onclick="sendManual()">Send</button>
+        <button class="btn-stop" onclick="triggerBargeIn()" title="Barge-in / Stop Audio">⏹</button>
+    </div>
+</div>
+
+<script>
+    const ws = new WebSocket(`ws://${window.location.host}/ws`);
+    const statusText = document.getElementById("statusText");
+    const micBtn = document.getElementById("micBtn");
+    const chatBox = document.getElementById("chatBox");
+    const latencyBadge = document.getElementById("latencyBadge");
+
+    let isListening = false;
+    let recognition = null;
+    let voices = [];
+
+    function populateVoices() {
+        voices = window.speechSynthesis.getVoices();
+    }
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+    populateVoices();
+
+    function addMessage(role, text) {
+        const div = document.createElement("div");
+        div.className = `msg ${role}`;
+        div.textContent = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function triggerBargeIn() {
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            ws.send(JSON.stringify({ type: "barge_in" }));
+            statusText.textContent = "Playback interrupted (Barge-in).";
         }
+    }
 
-        ws.onopen = () => log("Connected to assistant server.");
+    function selectVoice(text) {
+        if (!voices.length) voices = window.speechSynthesis.getVoices();
+        const low = text.toLowerCase();
         
-        ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            if (msg.type === "transcript") {
-                log(`<b>User:</b> ${msg.text}`);
-                document.getElementById("stt-stat").innerText = `STT: ${msg.latency_stt_ms}ms`;
-            } else if (msg.type === "audio_output") {
-                log(`<b>Assistant:</b> ${msg.text}`);
-                document.getElementById("llm-stat").innerText = `LLM: ${msg.metrics.llm_ms}ms`;
-                document.getElementById("tts-stat").innerText = `TTS: ${msg.metrics.tts_ms}ms`;
-                document.getElementById("total-stat").innerText = `Round-Trip: ${msg.metrics.total_ms}ms`;
-
-                playAudio(msg.audio);
-            }
-        };
-
-        function playAudio(b64Data) {
-            if (currentAudio) {
-                currentAudio.pause();
-            }
-            currentAudio = new Audio("data:audio/mp3;base64," + b64Data);
-            currentAudio.play();
+        let targetLang = "en-IN";
+        if (/[\u0C00-\u0C7F]/.test(text) || /\b(nenu|meeku|cheppandi|matladu|bagunnara|avunandi)\b/.test(low)) {
+            targetLang = "te-IN";
+        } else if (/[\u0900-\u097F]/.test(text) || /\b(kya|kaise|hoon|aap|boliye|miyan|fikar|kardete)\b/.test(low)) {
+            targetLang = "hi-IN";
         }
 
-        function interruptAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-                log("<span style='color:#f59e0b;'>[Interrupted] Playback cut off cleanly.</span>");
-                ws.send(JSON.stringify({ type: "interrupt" }));
+        let voice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === targetLang.toLowerCase());
+        if (!voice) voice = voices.find(v => v.lang.includes("IN"));
+        return { voice: voice || voices[0], lang: targetLang };
+    }
+
+    function speakText(text) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+
+        const config = selectVoice(text);
+        const u = new SpeechSynthesisUtterance(text);
+        if (config.voice) u.voice = config.voice;
+        u.lang = config.lang;
+        u.rate = 1.0;
+
+        u.onstart = () => { statusText.textContent = "Hazir speaking..."; };
+        u.onend = () => { statusText.textContent = "Ready"; };
+        u.onerror = () => { statusText.textContent = "Ready"; };
+
+        window.speechSynthesis.speak(u);
+    }
+
+    ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === "speak") {
+            if (data.action && data.action.startsWith("tool_")) {
+                addMessage("tool-badge", `[Executed: ${data.action}]`);
             }
+            addMessage("hazir", data.text);
+            latencyBadge.textContent = `RTT: ${data.latency_ms}ms`;
+            speakText(data.text);
+        }
+    };
+
+    function sendQuery(txt) {
+        triggerBargeIn();
+        addMessage("user", txt);
+        statusText.textContent = "Thinking...";
+        ws.send(JSON.stringify({ type: "audio_transcript", text: txt }));
+    }
+
+    function sendManual() {
+        const input = document.getElementById("textInput");
+        const val = input.value.trim();
+        if (!val) return;
+        sendQuery(val);
+        input.value = "";
+    }
+
+    function quickSend(val) {
+        sendQuery(val);
+    }
+
+    function toggleMic() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) {
+            alert("Please open in Google Chrome or Microsoft Edge.");
+            return;
         }
 
-        async function toggleRecording() {
-            const btn = document.getElementById("recordBtn");
-            if (!isRecording) {
-                interruptAudio();
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => {
-                        const base64Audio = reader.result.split(',')[1];
-                        ws.send(JSON.stringify({ type: "audio_input", data: base64Audio }));
-                    };
-                };
-                mediaRecorder.start();
-                btn.innerText = "Listening... Click to Send";
-                btn.classList.add("stop");
-                isRecording = true;
-            } else {
-                mediaRecorder.stop();
-                btn.innerText = "Click to Talk";
-                btn.classList.remove("stop");
-                isRecording = false;
-            }
+        if (!isListening) {
+            triggerBargeIn();
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add("listening");
+                statusText.textContent = "Listening... Speak now";
+            };
+
+            recognition.onresult = (e) => {
+                const text = e.results[0][0].transcript;
+                sendQuery(text);
+            };
+
+            recognition.onerror = () => {
+                isListening = false;
+                micBtn.classList.remove("listening");
+                statusText.textContent = "Ready";
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove("listening");
+            };
+
+            recognition.start();
+        } else {
+            if (recognition) recognition.stop();
         }
-    </script>
+    }
+</script>
 </body>
 </html>
