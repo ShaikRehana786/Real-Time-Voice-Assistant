@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Voice Assistant</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        button { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin: 8px 0; }
+        button.stop { background: #ef4444; }
+        button.barge { background: #f59e0b; }
+        .log-box { background: #020617; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; font-family: monospace; font-size: 13px; margin-top: 15px; }
+        .stat-badge { display: inline-block; padding: 4px 8px; background: #334155; border-radius: 4px; font-size: 12px; margin-right: 6px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Real-Time Voice Assistant</h2>
+        <p style="color: #94a3b8; font-size: 14px;">Full-duplex WebSocket pipeline with SQLite tool-calling & barge-in interruption.</p>
+        
+        <button id="recordBtn" onclick="toggleRecording()">Click to Talk</button>
+        <button class="barge" onclick="interruptAudio()">Interrupt Assistant (Barge-In)</button>
+
+        <div id="stats" style="margin-top: 15px;">
+            <span class="stat-badge" id="stt-stat">STT: - ms</span>
+            <span class="stat-badge" id="llm-stat">LLM: - ms</span>
+            <span class="stat-badge" id="tts-stat">TTS: - ms</span>
+            <span class="stat-badge" id="total-stat">Round-Trip: - ms</span>
+        </div>
+
+        <div class="log-box" id="logs"></div>
+    </div>
+
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let currentAudio = null;
+
+        function log(msg) {
+            const el = document.getElementById("logs");
+            el.innerHTML += `<div>> ${msg}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        ws.onopen = () => log("Connected to assistant server.");
+        
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            if (msg.type === "transcript") {
+                log(`<b>User:</b> ${msg.text}`);
+                document.getElementById("stt-stat").innerText = `STT: ${msg.latency_stt_ms}ms`;
+            } else if (msg.type === "audio_output") {
+                log(`<b>Assistant:</b> ${msg.text}`);
+                document.getElementById("llm-stat").innerText = `LLM: ${msg.metrics.llm_ms}ms`;
+                document.getElementById("tts-stat").innerText = `TTS: ${msg.metrics.tts_ms}ms`;
+                document.getElementById("total-stat").innerText = `Round-Trip: ${msg.metrics.total_ms}ms`;
+
+                playAudio(msg.audio);
+            }
+        };
+
+        function playAudio(b64Data) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            currentAudio = new Audio("data:audio/mp3;base64," + b64Data);
+            currentAudio.play();
+        }
+
+        function interruptAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                log("<span style='color:#f59e0b;'>[Interrupted] Playback cut off cleanly.</span>");
+                ws.send(JSON.stringify({ type: "interrupt" }));
+            }
+        }
+
+        async function toggleRecording() {
+            const btn = document.getElementById("recordBtn");
+            if (!isRecording) {
+                interruptAudio();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                        const base64Audio = reader.result.split(',')[1];
+                        ws.send(JSON.stringify({ type: "audio_input", data: base64Audio }));
+                    };
+                };
+                mediaRecorder.start();
+                btn.innerText = "Listening... Click to Send";
+                btn.classList.add("stop");
+                isRecording = true;
+            } else {
+                mediaRecorder.stop();
+                btn.innerText = "Click to Talk";
+                btn.classList.remove("stop");
+                isRecording = false;
+            }
+        }
+    </script>
+</body>
+</html>
