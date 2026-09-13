@@ -1,5 +1,12 @@
 # 🎙️ Hazir: Real-Time Full-Duplex Voice Assistant
 
+[![Live App](https://img.shields.io/badge/Live_App-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://real-time-voice-assistant-fjpx.onrender.com)
+[![API Docs](https://img.shields.io/badge/API_Docs-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://real-time-voice-assistant-fjpx.onrender.com/docs)
+
+- **Live Application:** [https://real-time-voice-assistant-fjpx.onrender.com](https://real-time-voice-assistant-fjpx.onrender.com)
+- **Interactive API Docs (Swagger UI):** [https://real-time-voice-assistant-fjpx.onrender.com/docs](https://real-time-voice-assistant-fjpx.onrender.com/docs)
+
+
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![WebSockets](https://img.shields.io/badge/WebSockets-Full--Duplex-4B8BBE?style=for-the-badge&logo=socketdotio&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
